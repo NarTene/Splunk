@@ -1,0 +1,18 @@
+loadjob: loadjob command (it comes under generating commands category) loads events or results of a previously completed search job. you can load the results in two way
+
+1> by specifying the search job id <sid> or  
+2> by specifying the scheduled search name and the time range of the current search. If a saved search name is provided and multiple results are found within that range, the latest result will be loaded.
+
+index=_internal sourcetype=splunkd group=* component=* thread=* | table _time group component thread 
+
+Benefit: You can load your old search results and work on it. To add some more filters to previous search result, you do not need to run a new search. Instead, you can load or call the previous completed search / or saved search results and add you filters on top of it.
+
+# Syntax
+
+|loadjob <sid>
+
+|loadjob savedsearch="<user>:<>:thruput-details"
+
+# References  : 
+
+https://docs.splunk.com/Documentation/SplunkCloud/8.2.2203/SearchReference/Loadjob
