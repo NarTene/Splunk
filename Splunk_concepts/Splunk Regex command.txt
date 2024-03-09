@@ -107,7 +107,103 @@ If you’re looking for a IP address, try out this regex setup:
 
 \d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3} = searches for digits that are 1-3 in length, separated by periods.
 
+d) Examples
 
+example1
+
+I have a field in Splunk events named employees_type with value: Jones Thomas ( contractor).  Write a Splunk statement to extract the string contractor  from employees_type field and assign it to a new field result, explain every steps in the Splunk query.
+
+ sample solution
+To extract the string contractor from the employees_type field in Splunk and assign it to a new field named result, you can use the rex command with a regular expression that captures the desired substring. Here’s how to do it step by step:
+
+1. Identify the Pattern
+First, you need to identify the common pattern in the employees_type field. Based on your example, the value Jones Thomas (contractor) suggests that the string you want to extract (contractor) is enclosed within parentheses.
+
+2. Construct the Regular Expression
+To extract a word within parentheses, you can use a regular expression with a named capturing group. The general pattern for capturing text within parentheses is \((.*?)\). Here's how it breaks down:
+
+\(: Escapes the opening parenthesis, telling the regex to treat it as a character to match in the text, not a regex grouping construct.
+(.*?): This is a capturing group that matches any character (.) any number of times (*), as few times as possible to make the match (?). This laziness ensures that if there are multiple sets of parentheses, you only capture up to the first closing parenthesis.
+\): Escapes the closing parenthesis, similar to the opening parenthesis.
+Since you want to specifically extract the term like contractor, and assuming it does not include any parentheses itself, you can refine this to capture a word character sequence. The regex for a word is \w+. However, to make sure it captures terms that might have spaces (assuming future variability), sticking with .*? is safer but ensure it's clearly defined by the parentheses.
+
+3. Apply the rex Command with the Regex
+The Splunk rex command syntax for this operation would look something like this:
+
+... | rex field=employees_type "\((?<result>.*?)\)"
+Explanation:
+
+rex: This command tells Splunk to apply a regular expression to the data.
+field=employees_type: This specifies that the regular expression should be applied to the employees_type field.
+"\((?<result>.*?)\)": This is the regular expression pattern.
+\(: Matches the opening parenthesis.
+(?<result>.*?): This is a named capturing group. It tells Splunk to match any characters (.*?) in a non-greedy manner until the first closing parenthesis it encounters and store that match in a new field called result.
+\): Matches the closing parenthesis.
+
+  Add a Default Value to the result field with the eval comand
+
+... | eval result=if(result!="contractor", "default_value", result)
+
+Replace "default_value" with whatever default value you'd like to assign when result is not "contractor".
+
+Combining Both Steps into a Single Query
+Putting it all together, the Splunk query looks like this:
+
+... | rex field=employees_type "\((?<result>.*?)\)"
+| eval result=if(result!="contractor", "default_value", result)
+
+
+Example 2: Extracting Username and Action from a Log Line
+Scenario: Your log format includes entries like user=john_doe action=login.
+
+Step 1: Identify the Patterns
+
+The pattern includes user= followed by a username and action= followed by an action.
+Step 2: Write the Regex with Named Capturing Groups
+
+For username: user=(?<username>\S+)
+For action: action=(?<action>\S+)
+Combine them: user=(?<username>\S+) action=(?<action>\S+)
+Step 3: Apply the rex Command
+
+... | rex "user=(?<username>\S+) action=(?<action>\S+)"
+Explanation:
+
+This command looks for the specified pattern in your log data.
+It extracts the username into a field named username and the action into a field named action.
+
+
+
+Understanding the Basics of rex
+Command Syntax: The basic syntax for rex is:
+
+... | rex field=source_field "your_regular_expression"
+field=source_field specifies the field from which you want to extract data. If not mentioned, Splunk uses the _raw field by default.
+"your_regular_expression" is where you define the regex pattern to match the data you want to extract. Named capturing groups within this pattern are used to extract data into fields.
+
+Using Named Capturing Groups
+Named capturing groups are denoted by (?<fieldname>pattern), where:
+
+fieldname is the name you assign to the extracted field.
+pattern is the regex pattern that matches the data you want to capture.
+
+Example 3: Extracting an IP Address
+Scenario: Suppose you have log entries with IP addresses mentioned as IP: 192.168.1.1, and you want to extract the IP address.
+
+Step 1: Identify the Pattern
+
+First, identify the common pattern in your log data. Here, IP addresses follow IP:.
+Step 2: Write the Regex
+
+Use a basic IP address regex pattern: \d+\.\d+\.\d+\.\d+
+Wrap it in a named capturing group for extraction: (?<ip_address>\d+\.\d+\.\d+\.\d+)
+Step 3: Apply the rex Command
+
+... | rex "IP: (?<ip_address>\d+\.\d+\.\d+\.\d+)"
+Explanation:
+
+This command searches through your log data for the pattern "IP: " followed by an IP address.
+It extracts the IP address into a new field named ip_address.
 
 References
 
